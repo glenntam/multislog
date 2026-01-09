@@ -52,7 +52,9 @@ func (ms *Multislog) Close() {
 //
 // Example usage (main.go):
 //
-//	msl, err := Multislog.New(
+//	import github.com/glenntam/multislog
+//
+//	msl, err := multislog.New(
 //	    EnableTimezone("Asia/Hong_Kong"),
 //	    EnableConsole(slog.LevelDebug),
 //	    EnableLogFile("logfile.json", false, true, slog.LevelDebug),
