@@ -54,17 +54,16 @@ func (ms *Multislog) Close() {
 //
 //	import github.com/glenntam/multislog
 //
-//	msl, err := multislog.New(
+//	msl := multislog.New(
 //	    EnableTimezone("Asia/Hong_Kong"),
 //	    EnableConsole(slog.LevelDebug),
 //	    EnableLogFile("logfile.json", false, true, slog.LevelDebug),
 //	)
-//	if err != nil {
-//	    panic(err.Error())
-//	}
 //	defer msl.Close()
 //	slog.SetDefault(msl.Logger)
 //	slog.Info("Logger started...")
+//
+// New panics if any options fail to enable.
 func New(opts ...Option) (*Multislog, error) {
 	ms := &Multislog{}
 
@@ -74,7 +73,7 @@ func New(opts ...Option) (*Multislog, error) {
 	for _, opt := range opts {
 		err := opt(ms)
 		if err != nil {
-			return nil, err
+			panic(fmt.Errorf("couldn't enable multislog option: %w", err))
 		}
 	}
 
