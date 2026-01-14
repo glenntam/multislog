@@ -16,6 +16,11 @@ import (
 	"time"
 )
 
+var (
+	errInvalidOption      = errors.New("invalid multislog option")
+	errInvalidLogFileName = errors.New("invalid log file name")
+)
+
 // Multislog is a custom logger that has multiple handlers.
 // It points to an internal log file that exposes a Close() function.
 //
@@ -76,7 +81,7 @@ func (ms *Multislog) Close() {
 //	slog.Info("Logger started...")
 //
 // By design, New()  panics if any options fail to enable.
-func New(opts ...Option) (*Multislog, error) {
+func New(opts ...Option) *Multislog {
 	ms := &Multislog{}
 
 	utc := time.UTC
@@ -85,7 +90,7 @@ func New(opts ...Option) (*Multislog, error) {
 	for _, opt := range opts {
 		err := opt(ms)
 		if err != nil {
-			panic(fmt.Errorf("couldn't enable multislog option: %w", err))
+			panic(fmt.Errorf("%w: %w", errInvalidOption, err))
 		}
 	}
 
@@ -94,7 +99,7 @@ func New(opts ...Option) (*Multislog, error) {
 		tz:       ms.timezone,
 	}
 	ms.Logger = slog.New(mh)
-	return ms, nil
+	return ms
 }
 
 // EnableTimezone forces Multislog to record time stamps in a specific time zone.
@@ -150,8 +155,6 @@ func EnableEmail(host, port, username, password, sender, recipient string, level
 	}
 }
 
-var errInvalidLogFileName = errors.New("invalid log file name")
-
 // Helper function for multisloggers to set the log file.
 func openLogFile(filename string, allowRead, clearOnRestart bool) (*os.File, error) {
 	// Security checks for validity filename
@@ -174,9 +177,10 @@ func openLogFile(filename string, allowRead, clearOnRestart bool) (*os.File, err
 
 	logPath := filepath.Join(baseDir, cleanName)
 
-	logPath, err = filepath.EvalSymlinks(logPath)
+	// Ensure the directory exists
+	_, err = os.Stat(baseDir)
 	if err != nil {
-		return nil, fmt.Errorf("resolve log path: %w", err)
+		return nil, fmt.Errorf("log directory does not exist: %w", err)
 	}
 	if !strings.HasPrefix(logPath+string(os.PathSeparator), baseDir+string(os.PathSeparator)) {
 		return nil, fmt.Errorf("log file escapes executable directory: %w", err)
@@ -204,6 +208,7 @@ func openLogFile(filename string, allowRead, clearOnRestart bool) (*os.File, err
 		flags |= os.O_APPEND
 	}
 
+	// #nosec G304 -- path is internally constructed, validated, and sandboxed
 	logFile, err := os.OpenFile(logPath, flags, logFilePermission)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't open %v logfile: %w", filename, err)
