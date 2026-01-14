@@ -7,6 +7,7 @@
 package multislog
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -30,7 +31,7 @@ type Multislog struct {
 // Option type to construct a Multislog object with a variable number of options.
 type Option func(*Multislog) error
 
-// Close safely closes the log file if one exists.
+// Close safely closes the log file and any other multihandler resources if they exist.
 //
 // It is intended to be called as a deferred function at main(), immediately after the logger is instantiated.
 // The deferred Close() function ensures the log file is properly closed on normal shutdown and panic unwinding.
@@ -38,14 +39,25 @@ type Option func(*Multislog) error
 //
 // See Multislog.New() for usage example.
 func (ms *Multislog) Close() {
-	if ms.logFile == nil {
-		return
+	// Close handlers first
+	for _, h := range ms.handlers {
+		c, ok := h.(interface{ Close() error })
+		if ok {
+			err := c.Close()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "multislog: failed to close handler: %v\n", err)
+			}
+		}
 	}
-	err := ms.logFile.Close()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "multislog: failed to close log file: %v\n", err)
+
+	// Close log file last
+	if ms.logFile != nil {
+		err := ms.logFile.Close()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "multislog: failed to close log file: %v\n", err)
+		}
+		ms.logFile = nil
 	}
-	ms.logFile = nil
 }
 
 // New is the primary outward Multislog constructor. It is typically called in main().
@@ -63,7 +75,7 @@ func (ms *Multislog) Close() {
 //	slog.SetDefault(msl.Logger)
 //	slog.Info("Logger started...")
 //
-// New panics if any options fail to enable.
+// By design, New()  panics if any options fail to enable.
 func New(opts ...Option) (*Multislog, error) {
 	ms := &Multislog{}
 
@@ -138,6 +150,8 @@ func EnableEmail(host, port, username, password, sender, recipient string, level
 	}
 }
 
+var errInvalidLogFileName = errors.New("invalid log file name")
+
 // Helper function for multisloggers to set the log file.
 func openLogFile(filename string, allowRead, clearOnRestart bool) (*os.File, error) {
 	// Security checks for validity filename
@@ -155,7 +169,7 @@ func openLogFile(filename string, allowRead, clearOnRestart bool) (*os.File, err
 
 	cleanName := filepath.Clean(filename)
 	if cleanName != filename || strings.Contains(cleanName, string(os.PathSeparator)) {
-		return nil, fmt.Errorf("invalid log file name: %w", err)
+		return nil, fmt.Errorf("%w: %q", errInvalidLogFileName, filename)
 	}
 
 	logPath := filepath.Join(baseDir, cleanName)
@@ -190,7 +204,7 @@ func openLogFile(filename string, allowRead, clearOnRestart bool) (*os.File, err
 		flags |= os.O_APPEND
 	}
 
-	logFile, err := os.OpenFile(filename, flags, logFilePermission)
+	logFile, err := os.OpenFile(logPath, flags, logFilePermission)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't open %v logfile: %w", filename, err)
 	}
