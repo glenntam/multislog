@@ -1,9 +1,10 @@
-// Package multislog is a custom log/slog logger.
+// Package multislog is a custom multilogger that plays nice with Go standard library log/slog.
 //
-// It combines multiple handlers into a single logger.
-// It can log to any combination of stderr/logfile/email handlers.
-// Individual handlers can have different log levels.
-// Log entries can be recorded in a user-specified timezone.
+// It can log to console, a log file and email at the same time, each with a different log level.
+//
+// It is slog-compliant: Anywhere slog is used you can use multislog without having to change any existing code.
+//
+// For convenience in small projects, log entries can optionally be recorded in a user-specified timezone.
 package multislog
 
 import (
@@ -24,7 +25,7 @@ var (
 // Multislog is a custom logger that has multiple handlers.
 // It points to an internal log file that exposes a Close() function.
 //
-// It's effectively still just a normal *slog.Logger that log/slog can use.
+// It can be used by standard library log/slog and is a slog.Logger in all ways.
 type Multislog struct {
 	*slog.Logger
 
@@ -42,7 +43,12 @@ type Option func(*Multislog) error
 // The deferred Close() function ensures the log file is properly closed on normal shutdown and panic unwinding.
 // The deferred Close() function won't run on: SIGKILL; power loss; kernel panic; or os.Exit.
 //
-// See Multislog.New() for usage example.
+// Example (main.go):
+//
+//	msl := multislog.New(EnableConsole(slog.LevelDebug))
+//	defer msl.Close()
+//
+// See Multislog.New() for complete usage example.
 func (ms *Multislog) Close() {
 	// Close handlers first
 	for _, h := range ms.handlers {
@@ -65,22 +71,23 @@ func (ms *Multislog) Close() {
 	}
 }
 
-// New is the primary outward Multislog constructor. It is typically called in main().
+// New is the primary Multislog constructor. It is typically called in main().
 //
 // Example usage (main.go):
 //
 //	import github.com/glenntam/multislog
 //
 //	msl := multislog.New(
-//	    EnableTimezone("Asia/Hong_Kong"),
+//	    EnableTimezone("America/New_York"),
 //	    EnableConsole(slog.LevelDebug),
-//	    EnableLogFile("logfile.json", false, true, slog.LevelDebug),
+//	    EnableLogFile(slog.LevelInfo, "logfile.json", false, true),
+//	    EnableEmail(slog.LevelWarn, "smtp.gmail.com", "465", "admin", "myPassword", "from@gmail.com", "to@email.com"),
 //	)
 //	defer msl.Close()
 //	slog.SetDefault(msl.Logger)
 //	slog.Info("Logger started...")
 //
-// By design, New()  panics if any options fail to enable.
+// By design, New() panics if any options fail to enable at start.
 func New(opts ...Option) *Multislog {
 	ms := &Multislog{}
 
@@ -132,7 +139,7 @@ func EnableConsole(level slog.Level) Option {
 //
 // allowRead makes the log file world-readable.
 // clearOnRestart deletes the existing log file on every run (useful when rapid prototyping).
-func EnableLogFile(filename string, allowRead, clearOnRestart bool, level slog.Level) Option {
+func EnableLogFile(level slog.Level, filename string, allowRead, clearOnRestart bool) Option {
 	return func(ms *Multislog) error {
 		file, err := openLogFile(filename, allowRead, clearOnRestart)
 		if err != nil {
@@ -146,7 +153,7 @@ func EnableLogFile(filename string, allowRead, clearOnRestart bool, level slog.L
 }
 
 // EnableEmail outputs all logs above "level" to email.
-func EnableEmail(host, port, username, password, sender, recipient string, level slog.Level) Option {
+func EnableEmail(level slog.Level, host, port, username, password, sender, recipient string) Option {
 	return func(ms *Multislog) error {
 		sc := newSMTPClient(port, host, username, password, sender, recipient)
 		emailHandler := newEmailHandler(sc, level)

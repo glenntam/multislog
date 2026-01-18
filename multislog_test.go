@@ -110,7 +110,7 @@ func TestEnableConsole_WritesToStderr(t *testing.T) {
 //
 
 func TestEnableLogFile_CreatesFile(t *testing.T) {
-	ms := New(EnableLogFile("test.log", false, true, slog.LevelInfo))
+	ms := New(EnableLogFile(slog.LevelInfo, "test.log", false, true))
 	defer ms.Close()
 
 	exe, _ := os.Executable()
@@ -132,7 +132,7 @@ func TestLogFile_AppendVsTruncate(t *testing.T) {
 
 	// first write
 	{
-		ms := New(EnableLogFile("append.log", false, true, slog.LevelInfo))
+		ms := New(EnableLogFile(slog.LevelInfo, "append.log", false, true))
 		slog.SetDefault(ms.Logger)
 		slog.Info("first")
 		ms.Close()
@@ -140,7 +140,7 @@ func TestLogFile_AppendVsTruncate(t *testing.T) {
 
 	// append
 	{
-		ms := New(EnableLogFile("append.log", false, false, slog.LevelInfo))
+		ms := New(EnableLogFile(slog.LevelInfo, "append.log", false, false))
 		slog.SetDefault(ms.Logger)
 		slog.Info("second")
 		ms.Close()
@@ -153,7 +153,7 @@ func TestLogFile_AppendVsTruncate(t *testing.T) {
 
 	// truncate
 	{
-		ms := New(EnableLogFile("append.log", false, true, slog.LevelInfo))
+		ms := New(EnableLogFile(slog.LevelInfo, "append.log", false, true))
 		slog.SetDefault(ms.Logger)
 		slog.Info("fresh")
 		ms.Close()
@@ -187,7 +187,7 @@ func TestEnableLogFile_InvalidFilename(t *testing.T) {
 	for _, name := range cases {
 		func(name string) {
 			assertPanicsWith(t, errInvalidOption, func() {
-				New(EnableLogFile(name, false, true, slog.LevelInfo))
+				New(EnableLogFile(slog.LevelInfo, name, false, true))
 			})
 		}(name)
 	}
