@@ -30,6 +30,7 @@ type Multislog struct {
 	*slog.Logger
 
 	logFile  *os.File
+	smtp     *smtpClient
 	timezone *time.Location
 	handlers []slog.Handler
 }
@@ -50,7 +51,7 @@ type Option func(*Multislog) error
 //
 // See Multislog.New() for complete usage example.
 func (ms *Multislog) Close() {
-	// Close handlers first
+	// Stop handlers first
 	for _, h := range ms.handlers {
 		c, ok := h.(interface{ Close() error })
 		if ok {
@@ -59,6 +60,11 @@ func (ms *Multislog) Close() {
 				fmt.Fprintf(os.Stderr, "multislog: failed to close handler: %v\n", err)
 			}
 		}
+	}
+
+	// Close the email queue
+	if ms.smtp != nil {
+		ms.smtp.Close()
 	}
 
 	// Close log file last
@@ -155,8 +161,8 @@ func EnableLogFile(level slog.Level, filename string, allowRead, clearOnRestart 
 // EnableEmail outputs all logs above "level" to email.
 func EnableEmail(level slog.Level, host, port, username, password, sender, recipient string) Option {
 	return func(ms *Multislog) error {
-		sc := newSMTPClient(port, host, username, password, sender, recipient)
-		emailHandler := newEmailHandler(sc, level)
+		ms.smtp = newSMTPClient(port, host, username, password, sender, recipient)
+		emailHandler := newEmailHandler(ms.smtp, level)
 		ms.handlers = append(ms.handlers, emailHandler)
 		return nil
 	}
