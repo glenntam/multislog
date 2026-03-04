@@ -29,7 +29,7 @@ var (
 type Multislog struct {
 	*slog.Logger
 
-	logFile  *os.File
+	LogFile  *os.File
 	smtp     *smtpClient
 	timezone *time.Location
 	handlers []slog.Handler
@@ -151,7 +151,7 @@ func EnableLogFile(level slog.Level, filename string, allowRead, clearOnRestart 
 		if err != nil {
 			return err
 		}
-		ms.logFile = file
+		ms.LogFile = file
 		fileHandler := slog.NewJSONHandler(file, &slog.HandlerOptions{Level: level})
 		ms.handlers = append(ms.handlers, fileHandler)
 		return nil
