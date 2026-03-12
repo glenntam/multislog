@@ -1,7 +1,7 @@
 # multislog
 
-[![GoDoc](https://img.shields.io/badge/pkg.go.dev-doc-blue)](http://pkg.go.dev/github.com/glenntam/multislog)
-[![Go Report Card](https://goreportcard.com/badge/github.com/glenntam/multislog)](https://goreportcard.com/report/github.com/glenntam/multislog)
+[![GoDoc](https://img.shields.io/badge/pkg.go.dev-doc-blue)](http://pkg.go.dev/github.com/glenntam/mulislog)
+[![Go Report Card](https://goreportcard.com/badge/github.com/glenntam/mulislog)](https://goreportcard.com/report/github.com/glenntam/mulislog)
 
 Package multislog is a custom multilogger that plays nice with Go standard library log/slog.
 
@@ -13,7 +13,7 @@ For convenience in small projects, log entries can optionally be recorded in a u
 
 ## Types
 
-### type [Multislog](https://github.com/glenntam/multislog/blob/main/multislog.go#L29)
+### type [Multislog](/multislog.go#L29)
 
 `type Multislog struct { ... }`
 
@@ -22,7 +22,7 @@ It points to an internal log file that exposes a Close() function.
 
 It can be used by standard library log/slog and is a slog.Logger in all ways.
 
-#### func [New](https://github.com/glenntam/multislog/blob/main/multislog.go#L91)
+#### func [New](/multislog.go#L97)
 
 `func New(opts ...Option) *Multislog`
 
@@ -34,10 +34,10 @@ Example usage (main.go):
 import github.com/glenntam/multislog
 
 msl := multislog.New(
-    EnableTimezone("America/New_York"),
-    EnableConsole(slog.LevelDebug),
-    EnableLogFile(slog.LevelInfo, "logfile.json", false, true),
-    EnableEmail(slog.LevelWarn, "smtp.gmail.com", "465", "admin", "myPassword", "from@gmail.com", "to@email.com"),
+    multislog.EnableTimezone("America/New_York"),
+    multislog.EnableConsole(slog.LevelDebug),
+    multislog.EnableLogFile(slog.LevelInfo, "logfile.json", false, true),
+    multislog.EnableEmail(slog.LevelWarn, "smtp.gmail.com", "465", "admin", "myPassword", "from@gmail.com", "to@email.com"),
 )
 defer msl.Close()
 slog.SetDefault(msl.Logger)
@@ -46,7 +46,7 @@ slog.Info("Logger started...")
 
 By design, New() panics if any options fail to enable at start.
 
-#### func (*Multislog) [Close](https://github.com/glenntam/multislog/blob/main/multislog.go#L52)
+#### func (*Multislog) [Close](/multislog.go#L53)
 
 `func (ms *Multislog) Close()`
 
@@ -63,27 +63,27 @@ msl := multislog.New(EnableConsole(slog.LevelDebug))
 defer msl.Close()
 ```
 
-See multislog.New() for complete usage example.
+See Multislog.New() for complete usage example.
 
-### type [Option](https://github.com/glenntam/multislog/blob/main/multislog.go#L38)
+### type [Option](/multislog.go#L39)
 
 `type Option func(*Multislog) error`
 
 Option type to construct a Multislog object with a variable number of options.
 
-#### func [EnableConsole](https://github.com/glenntam/multislog/blob/main/multislog.go#L130)
+#### func [EnableConsole](/multislog.go#L136)
 
 `func EnableConsole(level slog.Level) Option`
 
 EnableConsole outputs all logs above "level" to stderr.
 
-#### func [EnableEmail](https://github.com/glenntam/multislog/blob/main/multislog.go#L156)
+#### func [EnableEmail](/multislog.go#L162)
 
 `func EnableEmail(level slog.Level, host, port, username, password, sender, recipient string) Option`
 
 EnableEmail outputs all logs above "level" to email.
 
-#### func [EnableLogFile](https://github.com/glenntam/multislog/blob/main/multislog.go#L142)
+#### func [EnableLogFile](/multislog.go#L148)
 
 `func EnableLogFile(level slog.Level, filename string, allowRead, clearOnRestart bool) Option`
 
@@ -92,7 +92,7 @@ EnableLogFile outputs all logs above "level" to a log file.
 allowRead makes the log file world-readable.
 clearOnRestart deletes the existing log file on every run (useful when rapid prototyping).
 
-#### func [EnableTimezone](https://github.com/glenntam/multislog/blob/main/multislog.go#L118)
+#### func [EnableTimezone](/multislog.go#L124)
 
 `func EnableTimezone(timezone string) Option`
 

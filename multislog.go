@@ -84,10 +84,10 @@ func (ms *Multislog) Close() {
 //	import github.com/glenntam/multislog
 //
 //	msl := multislog.New(
-//	    EnableTimezone("America/New_York"),
-//	    EnableConsole(slog.LevelDebug),
-//	    EnableLogFile(slog.LevelInfo, "logfile.json", false, true),
-//	    EnableEmail(slog.LevelWarn, "smtp.gmail.com", "465", "admin", "myPassword", "from@gmail.com", "to@email.com"),
+//	    multislog.EnableTimezone("America/New_York"),
+//	    multislog.EnableConsole(slog.LevelDebug),
+//	    multislog.EnableLogFile(slog.LevelInfo, "logfile.json", false, true),
+//	    multislog.EnableEmail(slog.LevelWarn, "smtp.gmail.com", "465", "admin", "myPassword", "from@gmail.com", "to@email.com"),
 //	)
 //	defer msl.Close()
 //	slog.SetDefault(msl.Logger)
