@@ -68,12 +68,12 @@ func (ms *Multislog) Close() {
 	}
 
 	// Close log file last
-	if ms.logFile != nil {
-		err := ms.logFile.Close()
+	if ms.LogFile != nil {
+		err := ms.LogFile.Close()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "multislog: failed to close log file: %v\n", err)
 		}
-		ms.logFile = nil
+		ms.LogFile = nil
 	}
 }
 

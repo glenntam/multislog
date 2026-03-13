@@ -1,4 +1,4 @@
-.PHONY: readme
+.PHONY: readme release
 
 # Helper make command to automatically generate README.md
 readme:
@@ -6,3 +6,11 @@ readme:
 	@head -n $$(( $$(wc -l < README.md.tmp | tr -d ' ') - 3 )) README.md.tmp > README.md  # truncate last 3 lines
 	@rm README.md.tmp
 	# README.md sucessfully overwritten
+
+release:
+ifndef v
+	$(error v is not set. Usage: make release v=v1.2.0)
+endif
+	git tag -a $(v) -m "release $(v)"
+	git push origin main
+	git push origin $(v)
