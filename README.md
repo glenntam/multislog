@@ -1,7 +1,7 @@
 # multislog
 
-[![GoDoc](https://img.shields.io/badge/pkg.go.dev-doc-blue)](http://pkg.go.dev/github.com/glenntam/mulislog)
-[![Go Report Card](https://goreportcard.com/badge/github.com/glenntam/mulislog)](https://goreportcard.com/report/github.com/glenntam/mulislog)
+[![GoDoc](https://img.shields.io/badge/pkg.go.dev-doc-blue)](http://pkg.go.dev/github.com/glenntam/multislog)
+[![Go Report Card](https://goreportcard.com/badge/github.com/glenntam/multislog)](https://goreportcard.com/report/github.com/glenntam/multislog)
 
 Package multislog is a custom multilogger that plays nice with Go standard library log/slog.
 
