@@ -31,7 +31,7 @@ type Multislog struct {
 
 	LogFile  *os.File
 	smtp     *smtpClient
-	timezone *time.Location
+	Timezone *time.Location
 	handlers []slog.Handler
 }
 
