@@ -11,6 +11,5 @@ release:
 ifndef v
 	$(error v is not set. Usage: make release v=v1.2.0)
 endif
-	git tag -a $(v) -m "release $(v)"
-	git push origin main
-	git push origin $(v)
+	git tag -s $(v) -m "release $(v)"
+	git push
