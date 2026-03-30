@@ -98,7 +98,7 @@ func New(opts ...Option) *Multislog {
 	ms := &Multislog{}
 
 	utc := time.UTC
-	ms.timezone = utc
+	ms.Timezone = utc
 
 	for _, opt := range opts {
 		err := opt(ms)
@@ -109,7 +109,7 @@ func New(opts ...Option) *Multislog {
 
 	mh := &multihandler{
 		handlers: ms.handlers,
-		tz:       ms.timezone,
+		tz:       ms.Timezone,
 	}
 	ms.Logger = slog.New(mh)
 	return ms
@@ -127,7 +127,7 @@ func EnableTimezone(timezone string) Option {
 		if err != nil {
 			return fmt.Errorf("failed to fallback to UTC time zone: %w", err)
 		}
-		ms.timezone = tz
+		ms.Timezone = tz
 		return nil
 	}
 }
